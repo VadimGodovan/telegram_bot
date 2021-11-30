@@ -11,7 +11,9 @@ homework_statuses = requests.get(url, headers=headers, params=payload)
 # Печатаем ответ API в формате JSON
 #print(homework_statuses.text)
 result_status = (homework_statuses.json())
-result_status = result_status["homeworks"][0]
+pprint(result_status)
+result_status = result_status["homeworks"]
+pprint(result_status)
 pprint(result_status['status'])
 
 # А можно ответ в формате JSON привести к типам данных Python и напечатать и его

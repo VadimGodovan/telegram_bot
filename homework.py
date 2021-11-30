@@ -2,7 +2,7 @@ import os
 
 import requests
 
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, Updater
 
 from dotenv import load_dotenv 
@@ -30,7 +30,16 @@ HOMEWORK_STATUSES = {
 def send_message(bot, message):
     #отправляет сообщение в Telegram чат, определяемый переменной окружения TELEGRAM_CHAT_ID. 
     # Принимает на вход два параметра: экземпляр класса Bot и строку с текстом сообщения.
-    ...
+    # Здесь укажите токен, 
+# который вы получили от @Botfather при создании бот-аккаунта
+    bot = bot
+# Укажите id своего аккаунта в Telegram
+    chat_id = TELEGRAM_CHAT_ID
+    text = message
+# Отправка сообщения
+    bot.send_message(chat_id, text)
+
+    
 
 
 def get_api_answer(current_timestamp):
@@ -43,7 +52,7 @@ def get_api_answer(current_timestamp):
     # В качестве параметра функция получает временную метку. 
     # В случае успешного запроса должна вернуть ответ API, преобразовав 
     # его из формата JSON к типам данных Python
-    url = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+    url = ENDPOINT
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     timestamp = current_timestamp or int(time.time(0))
     params = {'from_date': timestamp}
@@ -52,18 +61,19 @@ def get_api_answer(current_timestamp):
     
     return response
     
-    #result_status = result_status["homeworks"][0]
     #итоговый статус
+    
+    #result_status = result_status["homeworks"][0]
     #pprint(result_status['status'])
     
 
-
 def check_response(response):
-    #проверяет ответ API на корректность. В качестве параметра функция получает ответ API,
-    #приведенный к типам данных Python. Если ответ API 
-    # соответствует ожиданиям, то функция должна вернуть список домашних работ 
-    #(он может быть и пустым), доступный в ответе API по ключу 'homeworks'.
-    ...
+    #проверяет ответ API на корректность. В качестве параметра функция получает ответ API, приведенный к типам данных Python.
+    # Если ответ API соответствует ожиданиям, то функция должна вернуть список домашних работ 
+    # (он может быть и пустым), доступный в ответе API по ключу 'homeworks'.
+    if response correct
+        homework = response['homeworks']
+        return homework
 
 
 def parse_status(homework):
@@ -71,23 +81,26 @@ def parse_status(homework):
     # В качестве параметра функция получает только один элемент из списка домашних работ. 
     # В случае успеха, функция возвращает подготовленную для отправки в Telegram строку, 
     # содержащую один из вердиктов словаря HOMEWORK_STATUSES
-    homework_name = ...
-    homework_status = ...
+    homework = homework[0]
+    homework_name = homework['homework_name']
+    homework_status = homework['status']
 
     ...
 
-    verdict = ...
+    verdict = HOMEWORK_STATUSES[homework_status]
 
-    ...
+    message = f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
-    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    return message
 
 
 def check_tokens():
     # проверяет доступность переменных окружения, которые необходимы для работы программы. 
     # Если отсутствует хотя бы одна переменная окружения — 
     # функция должна вернуть False, иначе — True.
-    if PRACTICUM_TOKEN == os.getenv('PRACTIC_TOKEN_KEY') and TELEGRAM_TOKEN == os.getenv('TELEG_TOKEN_KEY') and TELEGRAM_CHAT_ID == os.getenv('TELEG_CHAT_ID_KEY'):
+    if (PRACTICUM_TOKEN == os.getenv('PRACTIC_TOKEN_KEY') and 
+        TELEGRAM_TOKEN == os.getenv('TELEG_TOKEN_KEY') and 
+        TELEGRAM_CHAT_ID == os.getenv('TELEG_CHAT_ID_KEY')):
         return True
     else:
         return False
