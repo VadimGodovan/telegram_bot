@@ -4,7 +4,9 @@ import requests
 
 from telegram import ReplyKeyboardMarkup, Bot
 from telegram.ext import CommandHandler, Updater
-
+from telegram import Bot, error
+import telegram 
+import time
 from dotenv import load_dotenv 
 
 
@@ -28,53 +30,36 @@ HOMEWORK_STATUSES = {
 
 
 def send_message(bot, message):
-    #отправляет сообщение в Telegram чат, определяемый переменной окружения TELEGRAM_CHAT_ID. 
-    # Принимает на вход два параметра: экземпляр класса Bot и строку с текстом сообщения.
-    # Здесь укажите токен, 
-# который вы получили от @Botfather при создании бот-аккаунта
-    bot = bot
-# Укажите id своего аккаунта в Telegram
-    chat_id = TELEGRAM_CHAT_ID
-    text = message
-# Отправка сообщения
-    bot.send_message(chat_id, text)
+    """Принимает bot, message и отправляет заданному пользователю CHAT_ID"""
+    bot.send_message(TELEGRAM_CHAT_ID, message)
 
     
-
-
 def get_api_answer(current_timestamp):
-    # Делаем GET-запрос к эндпоинту url с заголовком headers и параметрами params
-    # Печатаем ответ API в формате JSON
-    # А можно ответ в формате JSON привести к типам данных Python и напечатать и его
-    # print(homework_statuses.json()) 
-    
     # делает запрос к единственному эндпоинту API-сервиса. 
     # В качестве параметра функция получает временную метку. 
     # В случае успешного запроса должна вернуть ответ API, преобразовав 
     # его из формата JSON к типам данных Python
     url = ENDPOINT
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-    timestamp = current_timestamp or int(time.time(0))
-    params = {'from_date': timestamp}
+    timestamp = current_timestamp
+    params = {'from_date': timestamp }
     homework_statuses = requests.get(url, headers=headers, params=params)
-    response = (homework_statuses.json())
+    return (homework_statuses.json())
     
-    return response
-    
-    #итоговый статус
-    
-    #result_status = result_status["homeworks"][0]
-    #pprint(result_status['status'])
-    
-
 def check_response(response):
-    #проверяет ответ API на корректность. В качестве параметра функция получает ответ API, приведенный к типам данных Python.
+    # проверяет ответ API на корректность. В качестве параметра функция получает ответ API, приведенный к типам данных Python.
     # Если ответ API соответствует ожиданиям, то функция должна вернуть список домашних работ 
     # (он может быть и пустым), доступный в ответе API по ключу 'homeworks'.
-    if response correct
-        homework = response['homeworks']
-        return homework
-
+    try:
+        response = response
+    except TypeError as error:
+        if not response:
+            print(f'Словарь пустой {error}')
+    except KeyError as error:
+        if response.get('homeworks') not in response:
+            print(f'Словаре отсутствует ключ "homeworks" {error}')
+    else:
+        return (response.get('homeworks'))
 
 def parse_status(homework):
     #извлекает из информации о конкретной домашней работе статус этой работы. 
@@ -84,26 +69,21 @@ def parse_status(homework):
     homework = homework[0]
     homework_name = homework['homework_name']
     homework_status = homework['status']
-
-    ...
-
+    #...
     verdict = HOMEWORK_STATUSES[homework_status]
-
-    message = f'Изменился статус проверки работы "{homework_name}". {verdict}'
-
-    return message
+    return f'Изменился статус проверки работы {homework_name}. {verdict}'
 
 
 def check_tokens():
     # проверяет доступность переменных окружения, которые необходимы для работы программы. 
     # Если отсутствует хотя бы одна переменная окружения — 
     # функция должна вернуть False, иначе — True.
-    if (PRACTICUM_TOKEN == os.getenv('PRACTIC_TOKEN_KEY') and 
-        TELEGRAM_TOKEN == os.getenv('TELEG_TOKEN_KEY') and 
-        TELEGRAM_CHAT_ID == os.getenv('TELEG_CHAT_ID_KEY')):
-        return True
-    else:
+    if (PRACTICUM_TOKEN is None or 
+        TELEGRAM_TOKEN is None or
+        TELEGRAM_CHAT_ID is None):
         return False
+    else:
+        return True
 
 
 def main():
@@ -113,29 +93,30 @@ def main():
     #Проверить ответ.
     #Если есть обновления — получить статус работы из обновления и отправить сообщение в Telegram.
     #Подождать некоторое время и сделать новый запрос.
-
-    ...
-
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    check_tokens()
+    bot = telegram.Bot(TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
-
-    ...
-
+    #...
     while True:
         try:
-            response = ...
+            current_timestamp = 0
+            response = get_api_answer(current_timestamp)
+            print(response)
+            homework = check_response(response)
+            print(homework)
+            message = parse_status(homework)
+            print(message)
+            send_message(bot, message)
 
-            ...
-
-            current_timestamp = ...
+            current_timestamp = 0
             time.sleep(RETRY_TIME)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            ...
+            #...
             time.sleep(RETRY_TIME)
         else:
-            ...
+            send_message(bot, message)
 
 
 if __name__ == '__main__':
