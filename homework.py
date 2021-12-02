@@ -31,12 +31,14 @@ logger = logging.getLogger(__name__)
 
 
 def send_message(bot, message):
-    """Принимает bot, message и отправляет заданному пользователю CHAT_ID"""
+    """Принимает message и bot отправляет заданному пользователю по CHAT_ID"""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'Сообщение отправлено успешно "{message}"')
     except Exception as error:
-        logging.error(f'Не удалась отправка сообщения: {error}')
+        error_message = (f'Не удалась отправка сообщения: {error}')
+        logging.error(error_message)
+        raise error(error_message)
         
     
 def get_api_answer(current_timestamp):
@@ -50,17 +52,23 @@ def get_api_answer(current_timestamp):
     params = {'from_date': timestamp }
     try:
         response = requests.get(url, headers=headers, params=params)
+        logger.info('Запрос выполнен успешно')
     except Exception as error:
-         logging.error(f'Не удалась сделать запрос к APIyandex: {error}')
+        error_message = (f'Не удалась сделать запрос к APIyandex: {error}')
+        logging.error(error_message)
+        raise error(error_message)
     try:
         if response.status_code != 200:
-            message = 'Сервер yandex не отвечает'
-            raise Exception(message)
+            error_message = 'Сервер yandex не отвечает'
+            logging.error(error_message)
+            raise Exception(error_message)
     except Exception as error:
-        message = 'API ведет себя незапланированно'
-        raise error(message)
+        error_message = 'непредвиденная ошибка API yandex'
+        logging.error(error_message)
+        raise error(error_message)
     return response.json()
     
+   
 def check_response(response):
     # проверяет ответ API на корректность. В качестве параметра функция получает ответ API, приведенный к типам данных Python.
     # Если ответ API соответствует ожиданиям, то функция должна вернуть список домашних работ 
