@@ -69,6 +69,10 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает из homework статус и имя домашней работы."""
+    key_list = ['status', 'homework_name']
+    for key in key_list:
+        if key not in homework:
+            raise KeyError(f'Значение {key} не найдено в ответе')
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status in VERDICT:
@@ -87,27 +91,24 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-    try:
-        check_tokens()
-    except Exception as error:
-        logging.error(f'Ошибка в TOKEN KEY или CHAT_ID: {error}')
     bot = telegram.Bot(TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
-            response = get_api_answer(current_timestamp)
-            homework = check_response(response)
-            message = parse_status(homework)
-            send_message(bot, message)
-
-            current_timestamp = timestamp
+            check_tokens()
+            new_homework = get_api_answer(current_timestamp)
+            check_homework = check_response(new_homework)
+            if check_homework.get('homeworks'):
+                send_message(parse_status(
+                    check_homework.get('homeworks')[0]),
+                    bot
+                )
+            current_timestamp = new_homework.get('current_date')
             time.sleep(RETRY_TIME)
-
         except Exception as error:
-            message = f'Сбой в работе программы: {error}'
+            message = f'Сбой в работе бота{error}'
             send_message(bot, message)
             time.sleep(RETRY_TIME)
-
-
+  
 if __name__ == '__main__':
     main()
