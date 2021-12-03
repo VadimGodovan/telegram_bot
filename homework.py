@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from http import HTTPStatus
 
 import requests
 import telegram
@@ -15,7 +16,7 @@ TELEGRAM_CHAT_ID = os.getenv('TELEG_CHAT_ID_KEY')
 RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-HOMEWORK_STATUSES = {
+VERDICT = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -36,23 +37,19 @@ def send_message(bot, message):
     except Exception as error:
         error_message = (f'Не удалась отправка сообщения: {error}')
         logging.error(error_message)
-        raise error(error_message)
 
 
 def get_api_answer(current_timestamp):
     """Отправляет к API ENDPOINT запрос возвращает сформированный ответ."""
-    url = ENDPOINT
-    headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-    timestamp = current_timestamp
-    params = {'from_date': timestamp}
+    params = {'from_date': current_timestamp}
     try:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
         logger.info('Запрос к {ENDPOINT} выполнен успешно')
     except Exception as error:
         error_message = (f'Не удалась сделать запрос к APIyandex {error}')
         logging.error(error_message)
         raise error(error_message)
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         error_message = 'Сервер {ENDPOINT} получает запрос, но не отвечает'
         logging.error(error_message)
         raise Exception(error_message)
@@ -74,20 +71,17 @@ def parse_status(homework):
     """Извлекает из homework статус и имя домашней работы."""
     homework_name = homework['homework_name']
     homework_status = homework['status']
-    if homework_status in HOMEWORK_STATUSES:
-        return f'Изменился статус проверки работы "{homework_name}".' \
-               f' {HOMEWORK_STATUSES[homework_status]}'
-    else:
-        raise ValueError('Не удалось определить статус домашней работы')
+    if homework_status in VERDICT:
+        return (
+            f'Изменился статус проверки работы '
+            f'"{homework_name}".{VERDICT[homework_status]}')
+    raise ValueError('Не удалось определить статус домашней работы')
 
 
 def check_tokens():
     """Проверяет доступность переменных с ключами."""
-    list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    for key in list:
-        if key is None:
-            return False
-    else:
+    key_list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    if all(key_list) is True:
         return True
 
 
@@ -102,18 +96,16 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            print(response)
             homework = check_response(response)
-            print(homework)
             message = parse_status(homework)
-            print(message)
             send_message(bot, message)
 
-            current_timestamp = 0
+            current_timestamp = timestamp
             time.sleep(RETRY_TIME)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
+            send_message(bot, message)
             time.sleep(RETRY_TIME)
 
 
