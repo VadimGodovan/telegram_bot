@@ -6,7 +6,6 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 
@@ -30,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_message(bot, message):
-    """Принимает message и bot отправляет
-    message заданному пользователю по CHAT_ID"""
+    """Отправляет message заданному пользователю по CHAT_ID."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'Сообщение отправлено успешно {message}')
@@ -42,8 +40,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """Получает временную метку, отправляет к API ENDPOINT запрос
-    и возвращает сформированный .json ответ"""
+    """Отправляет к API ENDPOINT запрос возвращает сформированный ответ."""
     url = ENDPOINT
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     timestamp = current_timestamp
@@ -63,7 +60,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """Проверяет корректность response, возвращает словарь домашней работы"""
+    """Проверяет корректность response, возвращает словарь домашней работы."""
     if not response:
         raise TypeError('Пустой ответ')
     if not isinstance(response, dict):
@@ -74,8 +71,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Извлекает из homework статус и имя домашней работы и
-    создаёт готовую строку для отправки"""
+    """Извлекает из homework статус и имя домашней работы."""
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status in HOMEWORK_STATUSES:
@@ -86,7 +82,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверяет доступность переменных с ключами"""
+    """Проверяет доступность переменных с ключами."""
     list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     for key in list:
         if key is None:
@@ -96,7 +92,7 @@ def check_tokens():
 
 
 def main():
-    """Основная логика работы бота"""
+    """Основная логика работы бота."""
     try:
         check_tokens()
     except Exception as error:
@@ -123,4 +119,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
