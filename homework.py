@@ -1,11 +1,11 @@
 import logging
 import os
-import requests
 import time
-import telegram
-from requests.exceptions import RequestException
 
-from dotenv import load_dotenv 
+import requests
+import telegram
+from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -62,62 +62,23 @@ def get_api_answer(current_timestamp):
    
 def check_response(response):
     """Проверяет корректность response, возвращает словарь домашней работы"""
+    if not response:
+        raise TypeError('Пустой ответ')
     if not isinstance(response, dict):
-        error_message = 'Ответ не является словарём'
-        logging.error(error_message)
-        raise TypeError(error_message)
-
-    if ['homeworks'][0] not in response:
-        error_message = 'Ответ не содержит домашней работы'
-        logging.error(error_message)
-        raise IndexError(error_message)
-    
-    try:
-        homeworks = response['homeworks']
-        if len(homeworks) == 0:
-            raise KeyError('Ошибка, нет домашек')
-        return homeworks
-    except RequestException:
-        raise RequestException('Ошибка запроса')
-    
-    #if ['homeworks'][0] in response:
-        #return response['homeworks'][0]
-    #if response['homeworks'] in response:
-        #return response['homeworks']
-    
-        #return response
-        
-    
-    #homework = response.get('homeworks')[0]
-    #return homework
+        raise TypeError('Ожидаем словарь')
+    if not isinstance(response.get('homeworks'), list):
+        raise TypeError('Ожидаем список')
+    return response.get('homeworks')
     
     
 def parse_status(homework):
     """Извлекает из homework статус и имя домашней работы и создаёт готовую строку для отправки"""
-    #if isinstance(homework, list):
-        #error_message = 'Ответ не является словарём'
-        #logging.error(error_message)
-        #raise TypeError(error_message)
-    
-    try:
-        homework_name = homework['homework_name']
-    except KeyError as error:
-        error_message = (f'Не удалось получить имя домашней работы: {error}')
-        logging.error(error_message)
-        raise KeyError(error_message)
-    try:
-        homework_status = homework['status']
-    except KeyError as error:
-        error_message = (f'Не удалось получить статус домашней работы: {error}')
-        logging.error(error_message)
-        raise KeyError(error_message)
-    try:
-        verdict = HOMEWORK_STATUSES[homework_status]
-    except KeyError as error:
-        error_message = (f'Неизвестный статус домашней работы: {error}')
-        logging.error(error_message)
-        raise KeyError(error_message)
-    return f'Изменился статус проверки работы {homework_name}. {verdict}'
+    homework_name = homework['homework_name']
+    homework_status = homework['status']
+    if homework_status in HOMEWORK_STATUSES:
+        return f'Изменился статус проверки работы "{homework_name}" {HOMEWORK_STATUSES[homework_status]}'
+    else:
+        raise ValueError('Не удалось определить статус домашней работы')
 
 
 def check_tokens():
@@ -132,11 +93,6 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота"""
-    #остальные функции запускаются здесь
-    #Сделать запрос к API.
-    #Проверить ответ.
-    #Если есть обновления — получить статус работы из обновления и отправить сообщение в Telegram.
-    #Подождать некоторое время и сделать новый запрос.
     try:
         check_tokens()
     except Exception as error:
@@ -145,7 +101,7 @@ def main():
     current_timestamp = int(time.time())
     while True:
         try:
-            current_timestamp = 0
+            #current_timestamp = 0
             response = get_api_answer(current_timestamp)
             print(response)
             homework = check_response(response)
@@ -159,7 +115,6 @@ def main():
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            #...
             time.sleep(RETRY_TIME)
 
 
