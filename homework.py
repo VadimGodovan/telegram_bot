@@ -75,8 +75,8 @@ def parse_status(homework):
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status in HOMEWORK_STATUSES:
-        return f'Изменился статус работы .' \
-               f' "{homework_name}" {HOMEWORK_STATUSES[homework_status]}'
+        return f'Изменился статус домашней работы "{homework_name}".' \
+               f' {HOMEWORK_STATUSES[homework_status]}'
     else:
         raise ValueError('Не удалось определить статус домашней работы')
 
