@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 def send_message(bot, message):
-    """Принимает message и bot отправляет message заданному пользователю по CHAT_ID"""
+    """Принимает message и bot отправляет
+    message заданному пользователю по CHAT_ID"""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'Сообщение отправлено успешно {message}')
@@ -38,19 +39,20 @@ def send_message(bot, message):
         error_message = (f'Не удалась отправка сообщения: {error}')
         logging.error(error_message)
         raise error(error_message)
-        
-    
+
+
 def get_api_answer(current_timestamp):
-    """Получает временную метку, отправляет к API ENDPOINT запрос и возвращает сформированный .json ответ"""
+    """Получает временную метку, отправляет к API ENDPOINT запрос
+    и возвращает сформированный .json ответ"""
     url = ENDPOINT
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
     timestamp = current_timestamp
-    params = {'from_date': timestamp }
+    params = {'from_date': timestamp}
     try:
         response = requests.get(url, headers=headers, params=params)
         logger.info('Запрос к {ENDPOINT} выполнен успешно')
     except Exception as error:
-        error_message = (f'Не удалась сделать запрос к {ENDPOINT} (APIyandex): {error}')
+        error_message = (f'Не удалась сделать запрос к APIyandex {error}')
         logging.error(error_message)
         raise error(error_message)
     if response.status_code != 200:
@@ -58,8 +60,8 @@ def get_api_answer(current_timestamp):
         logging.error(error_message)
         raise Exception(error_message)
     return response.json()
-    
-   
+
+
 def check_response(response):
     """Проверяет корректность response, возвращает словарь домашней работы"""
     if not response:
@@ -69,24 +71,26 @@ def check_response(response):
     if not isinstance(response.get('homeworks'), list):
         raise TypeError('Ожидаем список')
     return response.get('homeworks')
-    
-    
+
+
 def parse_status(homework):
-    """Извлекает из homework статус и имя домашней работы и создаёт готовую строку для отправки"""
+    """Извлекает из homework статус и имя домашней работы и
+    создаёт готовую строку для отправки"""
     homework_name = homework['homework_name']
     homework_status = homework['status']
     if homework_status in HOMEWORK_STATUSES:
-        return f'Изменился статус проверки работы "{homework_name}" {HOMEWORK_STATUSES[homework_status]}'
+        return f'Изменился статус работы .' \
+               f' "{homework_name}" {HOMEWORK_STATUSES[homework_status]}'
     else:
         raise ValueError('Не удалось определить статус домашней работы')
 
 
 def check_tokens():
     """Проверяет доступность переменных с ключами"""
-    if (PRACTICUM_TOKEN is None or 
-        TELEGRAM_TOKEN is None or
-        TELEGRAM_CHAT_ID is None):
-        return False
+    list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    for key in list:
+        if key is None:
+            return False
     else:
         return True
 
@@ -101,7 +105,6 @@ def main():
     current_timestamp = int(time.time())
     while True:
         try:
-            #current_timestamp = 0
             response = get_api_answer(current_timestamp)
             print(response)
             homework = check_response(response)
@@ -120,4 +123,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
+
