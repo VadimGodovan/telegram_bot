@@ -109,6 +109,7 @@ def main():
             message = f'Сбой в работе бота{error}'
             send_message(bot, message)
             time.sleep(RETRY_TIME)
-  
+
+
 if __name__ == '__main__':
     main()
