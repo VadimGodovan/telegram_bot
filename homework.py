@@ -85,8 +85,7 @@ def parse_status(homework):
 def check_tokens():
     """Проверяет доступность переменных с ключами."""
     key_list = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    if all(key_list) is True:
-        return True
+    return all(key_list)
 
 
 def main():
