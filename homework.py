@@ -16,7 +16,7 @@ TELEGRAM_CHAT_ID = os.getenv('TELEG_CHAT_ID_KEY')
 RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-VERDICT = {
+VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -64,6 +64,7 @@ def check_response(response):
         raise TypeError('Ожидаем словарь')
     if not isinstance(response.get('homeworks'), list):
         raise TypeError('Ожидаем список')
+    logger.info('Cловарь домашней работы получен')
     return response.get('homeworks')
 
 
@@ -75,10 +76,12 @@ def parse_status(homework):
             raise KeyError(f'Значение {key} не найдено в ответе')
     homework_name = homework['homework_name']
     homework_status = homework['status']
-    if homework_status in VERDICT:
-        return (
+    if homework_status in VERDICTS:
+        logger.info('Статус домашней работы получен')
+        message = (
             f'Изменился статус проверки работы '
-            f'"{homework_name}".{VERDICT[homework_status]}')
+            f'"{homework_name}".{VERDICTS[homework_status]}')
+        return message
     raise ValueError('Не удалось определить статус домашней работы')
 
 
@@ -97,11 +100,9 @@ def main():
             check_tokens()
             new_homework = get_api_answer(current_timestamp)
             check_homework = check_response(new_homework)
-            if check_homework.get('homeworks'):
-                send_message(parse_status(
-                    check_homework.get('homeworks')[0]),
-                    bot
-                )
+            if len(check_homework[0]) != 0:
+                message = parse_status(check_homework[0])
+                send_message(bot, message)
             current_timestamp = new_homework.get('current_date')
             time.sleep(RETRY_TIME)
         except Exception as error:
@@ -112,3 +113,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
