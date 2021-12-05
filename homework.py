@@ -36,7 +36,7 @@ def send_message(bot, message):
         logger.info(f'Сообщение отправлено успешно {message}')
     except Exception as error:
         error_message = (f'Не удалась отправка сообщения: {error}')
-        logging.error(error_message)
+        logger.error(error_message)
 
 
 def get_api_answer(current_timestamp):
@@ -47,11 +47,11 @@ def get_api_answer(current_timestamp):
         logger.info('Запрос к {ENDPOINT} выполнен успешно')
     except Exception as error:
         error_message = (f'Не удалась сделать запрос к APIyandex {error}')
-        logging.error(error_message)
+        logger.error(error_message)
         raise error(error_message)
     if response.status_code != HTTPStatus.OK:
         error_message = 'Сервер {ENDPOINT} получает запрос, но не отвечает'
-        logging.error(error_message)
+        logger.error(error_message)
         raise Exception(error_message)
     return response.json()
 
@@ -93,11 +93,18 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
+    # Приветствую) прошу прощения, но я туповат, и не понимаю сути вопроса про
+    # дублирующиеся сообщения, можно немного подробнее?)
+    result_tokens_chek = check_tokens()
+    if not result_tokens_chek:
+        logger.info(
+            'Отсутвуют обязательные TOKEN_KEY и/или CHAT_ID,'
+            'работа программы остановлена')
+        exit(0)
     bot = telegram.Bot(TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
         try:
-            check_tokens()
             new_homework = get_api_answer(current_timestamp)
             check_homework = check_response(new_homework)
             if len(check_homework[0]) != 0:
