@@ -93,14 +93,14 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-    # Приветствую) прошу прощения, но я туповат, и не понимаю сути вопроса про
-    # дублирующиеся сообщения, можно немного подробнее?)
+    # Вроде понял)
     result_tokens_chek = check_tokens()
     if not result_tokens_chek:
         logger.info(
             'Отсутвуют обязательные TOKEN_KEY и/или CHAT_ID,'
             'работа программы остановлена')
         exit(0)
+    last_message = ''
     bot = telegram.Bot(TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     while True:
@@ -109,7 +109,9 @@ def main():
             check_homework = check_response(new_homework)
             if len(check_homework[0]) != 0:
                 message = parse_status(check_homework[0])
-                send_message(bot, message)
+                if message != last_message:
+                    send_message(bot, message)
+                    last_message = message
             current_timestamp = new_homework.get('current_date')
             time.sleep(RETRY_TIME)
         except Exception as error:
